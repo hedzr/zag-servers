@@ -1,0 +1,138 @@
+package com.obsez.zag.demostreamrmqpublisher.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitConfig {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    public static final String topicExchangeName = "spring-cloud-test-exchange";
+
+    public static final String QUEUE_HELLO = "spring-cloud-test-hello";
+
+    public final static String routingKey = "foo.bar.aaa";
+    public final static String routingKeyFilter = "foo.bar.#";
+
+    public final static String routingKey2 = "sw.orders.test.1";
+
+    //@Primary
+    @Bean
+    @Qualifier("hello")
+    public Queue helloQueue() {
+        return new Queue(QUEUE_HELLO, false, false, false);
+    }
+
+    @Bean
+    @Qualifier("hello")
+    TopicExchange helloExchange() {
+        return new TopicExchange(topicExchangeName);
+    }
+
+    @Bean
+    Binding helloBinding(@Qualifier("hello") Queue queue, @Qualifier("hello") TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(routingKeyFilter);
+    }
+
+    public static final String QUEUE_NEO = "spring-cloud-test-neo";
+    public static final String EXCHANGE_NEO = "spring-cloud-test-exchange-neo";
+    public static final String routingKeyFilterNeo = "neo.main.#";
+
+    @Bean
+    @Qualifier("neo")
+    public Queue neoQueue() {
+        return new Queue(QUEUE_NEO, true, false, false);
+    }
+
+    @Bean
+    @Qualifier("neo")
+    TopicExchange neoExchange() {
+        return new TopicExchange(EXCHANGE_NEO, true, false);
+    }
+
+    @Bean
+    Binding neoBinding(@Qualifier("neo") Queue queue, @Qualifier("neo") TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(routingKeyFilterNeo);
+    }
+
+    @Bean
+    public Queue objectQueue() {
+        return new Queue("spring-cloud-test-object");
+    }
+
+
+    //@Bean
+    //@Qualifier("connectionFactory")
+    //public ConnectionFactory connectionFactory() {
+    //    CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+    //    connectionFactory.setAddresses("localhost:5672");
+    //    connectionFactory.setUsername("guest");
+    //    connectionFactory.setPassword("guest");
+    //    connectionFactory.setVirtualHost("/");
+    //    connectionFactory.setPublisherConfirms(true); // 必须要设置
+    //    return connectionFactory;
+    //}
+
+    /**
+     * 在创建了多个ConnectionFactory时，必须定义RabbitAdmin，否则无法自动创建exchange,queue
+     *
+     * @param connectionFactory
+     * @return
+     */
+    @Bean
+    public RabbitAdmin rabbitAdmin(/*@Qualifier("connectionFactory") */ConnectionFactory connectionFactory) {
+        return new RabbitAdmin(connectionFactory);
+    }
+
+    //@Bean
+    //SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
+    //                                         MessageListenerAdapter listenerAdapter) {
+    //    SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+    //    container.setConnectionFactory(connectionFactory);
+    //    container.setQueueNames(QUEUE_HELLO);
+    //    container.setMessageListener(listenerAdapter);
+    //    return container;
+    //}
+
+    //@Bean
+    //MessageListenerAdapter listenerAdapter(Receiver receiver) {
+    //    return new MessageListenerAdapter(receiver, "receiveMessage");
+    //}
+
+    //@Bean
+    //public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory() {
+    //    SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+    //    factory.setConnectionFactory(connectionFactory());
+    //    factory.setPrefetchCount(0);
+    //    //必须要设置,消息的回掉
+    //    connectionFactory.setPublisherConfirms(true);
+    //    return factory;
+    //}
+    //@Bean
+    //public ConnectionFactory connectionFactory() {
+    //    CachingConnectionFactory cachingConnectionFactory =  new CachingConnectionFactory("127.0.0.1", 5672);
+    //    cachingConnectionFactory.setUsername("guest");
+    //    cachingConnectionFactory.setPassword("guest");
+    //    return cachingConnectionFactory;
+    //}
+
+
+    //@Bean
+    //public ConnectionFactory connectionFactory() {
+    //    CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+    //    connectionFactory.setHost(HOST);
+    //    connectionFactory.setPort(PORT);
+    //    connectionFactory.setUsername(USERNAME);
+    //    connectionFactory.setPassword(PASSWORD);
+    //    connectionFactory.setVirtualHost("/");
+    //    //必须要设置,消息的回掉
+    //    connectionFactory.setPublisherConfirms(true);
+    //    return connectionFactory;
+    //}
+}

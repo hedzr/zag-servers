@@ -1,0 +1,118 @@
+
+spring:
+  profiles:
+    active:
+      - dev
+
+info:
+  category: zag
+
+obsez:
+  # 微服务在这里宣告自己对其他服务的依赖
+  # 首要用途是避免硬编码公共设施或核心服务的名称(service-id)，请通过此处的映射提取设施的服务ID。
+  # 不必试图提取本表来建构依赖关系，调用链依赖关系可以在zipkin server中直接读出真实的链条。
+  depends:
+    registrar: main-eureka-server
+    gateway: main-api-gateway
+    config: main-config-server
+    badmin: main-spring-boot-admin
+    zipkin: main-zipkin-server
+    hystrix: main-hystrix-dashboard
+    demo-provider: service-demo-provider
+  lb:
+    ms-access:
+      '1.0-SNAPSHOT': 100
+      '3.0-SNAPSHOT': 0
+      '1.0.RELEASE': 0
+    demo-provider:
+      '1.0-SNAPSHOT': 90
+      '1.0.1-SNAPSHOT': 10
+    sw-user:
+      '2.0.0-SNAPSHOT': 100
+    sw-access:
+      '2.0.0-SNAPSHOT': 100
+    sw-order:
+      '2.0.0-SNAPSHOT': 100
+    sw-activity:
+      '2.0.0-SNAPSHOT': 100
+
+demo.title:
+
+0-zuul:
+  routes:
+    api-a:
+      path: /api-a/**
+      serviceId: service-ribbon
+    api-b:
+      path: /api-b/**
+      serviceId: service-feign
+    api:
+      path: /api/**
+      serviceId: eureka-provider
+      stripPrefix: true
+
+# https://www.jianshu.com/p/e9ce05b44150
+# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready
+# http://blog.didispace.com/spring-boot-actuator-1/
+#
+# - **http://www.baeldung.com/spring-boot-actuators**
+# - **https://blog.csdn.net/alinyua/article/details/80009435**
+management:
+  info:
+    git.mode: full
+  # security.enabled: false
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    # sensitive: false
+    # metrics.sensitive: false
+    # web.expose: "*"
+    web.exposure:
+      include: "*"
+      exclude: beans
+  security.enabled: false  # for springboot 1.5.x or earlier
+
+
+---
+spring:
+  profiles: dev
+  boot.admin.client:
+    url: http://localhost:7777
+    username:
+    password:
+    #instance:
+      #metadata:
+        #user.name: ${spring.security.user.name}
+        #user.password: ${spring.security.user.password}
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://127.0.0.1:8761/eureka/
+
+hystrix.command.default.execution.isolation.thread:
+  timeoutInMilliseconds: 4000
+
+
+---
+spring:
+  profiles: prod
+  boot.admin.client:
+    url: http://badmin.bi.ops.local:7777
+    username:
+    password:
+    #instance:
+      #metadata:
+        #user.name: ${spring.security.user.name}
+        #user.password: ${spring.security.user.password}
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://registrar.bi.ops.local:8761/eureka/
+
+hystrix.command.default.execution.isolation.thread:
+  timeoutInMilliseconds: 4000

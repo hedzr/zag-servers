@@ -1,0 +1,17 @@
+server:
+  port: 9999
+
+spring:
+  application:
+    name: main-api-gateway
+  cloud:
+    config:
+      #uri: ${SPRING_CONFIG_URI:http://localhost:9999}
+      discovery:
+        enabled: true
+        service-id: main-config-server
+      #profile: default
+      #label: master
+      #fail-fast: true  # 未能找到配置服务器则立即终止服务
+      #username: root
+      #password: booszy

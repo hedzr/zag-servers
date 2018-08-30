@@ -1,0 +1,108 @@
+
+spring:
+  profiles:
+    active:
+      - dev
+
+
+# https://www.jianshu.com/p/e9ce05b44150
+# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready
+# http://blog.didispace.com/spring-boot-actuator-1/
+#
+# - **http://www.baeldung.com/spring-boot-actuators**
+# - **https://blog.csdn.net/alinyua/article/details/80009435**
+management:
+  info:
+    git.mode: full
+  # security.enabled: false
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    # sensitive: false
+    # metrics.sensitive: false
+    # web.expose: "*"
+    web.exposure:
+      include: "*"
+      exclude: beans
+  security.enabled: false  # for springboot 1.5.x or earlier
+
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicExtractor: TRACE
+    com.obsez.zag.persistence: ERROR
+    com.obsez.zag.common: INFO
+    com.obsez.zag.common.lb: DEBUG
+    io.springfox: DEBUG
+    com.obsez.zag.my-service: DEBUG
+
+eureka:
+  instance:
+    hostname: 0.0.0.0
+    #perfer-ip-address: true    # 如果要使用IP地址而不是主机名
+  server:
+    enable-self-preservation: false	      # 设为false，关闭自我保护
+    eviction-interval-timer-in-ms: 3000   # 清理间隔（单位毫秒，默认是60*1000）
+
+
+
+
+---
+spring:
+  profiles: prod
+  boot.admin.client:
+    url: http://badmin.bi.ops.local:7777
+    username:
+    password:
+  zipkin.baseUrl: http://zipkin.bi.ops.local:9411
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://registrar.1.bi.ops.local:8761/eureka/
+    healthcheck:
+      enabled: false
+
+
+---
+spring:
+  profiles: slave
+  boot.admin.client:
+    url: http://badmin.bi.ops.local:7777
+    username:
+    password:
+  zipkin.baseUrl: http://zipkin.bi.ops.local:9411
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://registrar.bi.ops.local:8761/eureka/
+    healthcheck:
+      enabled: false
+
+
+
+
+---
+spring:
+  profiles: dev
+  boot.admin.client:
+    url: http://localhost:7777
+    username:
+    password:
+    #instance:
+      #metadata:
+        #user.name: ${spring.security.user.name}
+        #user.password: ${spring.security.user.password}
+
+eureka:
+  client:
+    register-with-eureka: false   # i'm a server
+    fetch-registry: false
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://127.0.0.1:${server.port}/eureka/

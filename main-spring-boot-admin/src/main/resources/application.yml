@@ -1,0 +1,99 @@
+
+spring:
+  profiles:
+    active:
+      - dev
+  boot:
+    admin:
+      routes:
+        endpoints: env,metrics,trace,dump,jolokia,info,configprops,
+          logfile,refresh,flyway,liquibase,heapdump,hystrix.stream
+
+info:
+  category: zag
+
+
+# https://www.jianshu.com/p/e9ce05b44150
+# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready
+# http://blog.didispace.com/spring-boot-actuator-1/
+#
+# - **http://www.baeldung.com/spring-boot-actuators**
+# - **https://blog.csdn.net/alinyua/article/details/80009435**
+management:
+  info:
+    git.mode: full
+  # security.enabled: false
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    # sensitive: false
+    # metrics.sensitive: false
+    # web.expose: "*"
+    web.exposure:
+      include: "*"
+      exclude: beans
+  security.enabled: false  # for springboot 1.5.x or earlier
+
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicExtractor: TRACE
+    com.obsez.zag.persistence: ERROR
+    com.obsez.zag.common: INFO
+    com.obsez.zag.common.lb: DEBUG
+    io.springfox: DEBUG
+    com.obsez.zag.my-service: DEBUG
+
+
+
+
+---
+spring:
+  profiles: prod
+#  boot:
+#    admin.client:
+#      url: http://badmin.bi.ops.local:${server.port}
+#      username:
+#      password:
+#    client:
+#      url: http://badmin.bi.ops.local:${server.port}
+#      username:
+#      password:
+#  zipkin.baseUrl: http://zipkin.bi.ops.local:9411
+  cloud.config.server:
+    git:
+      uri: https://github.com/hedzr/zag-springcloud-config-profiles
+      #uri: file://${user.home}/hzw/zag-project/zag-springcloud-config-profiles #/{application}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://registrar.bi.ops.local:8761/eureka/
+    healthcheck:
+      enabled: false
+
+
+
+---
+spring:
+  profiles: dev
+  boot:
+    client:
+      url: http://localhost:${server.port}
+      username:
+      password:
+      #instance:
+        #metadata:
+          #user.name: ${spring.security.user.name}
+          #user.password: ${spring.security.user.password}
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://127.0.0.1:8761/eureka/
+

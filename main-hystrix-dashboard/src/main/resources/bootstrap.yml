@@ -1,0 +1,7 @@
+server:
+  port: 7776
+
+spring:
+  application:
+    name: main-hystrix-dashboard
+

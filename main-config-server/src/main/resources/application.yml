@@ -1,0 +1,209 @@
+
+spring:
+  profiles:
+    active:
+      - dev
+      # - laoye
+
+info:
+  category: zag
+  # api.version: 2.0pre
+
+obsez:
+  # 微服务在这里宣告自己对其他服务的依赖
+  # 首要用途是避免硬编码公共设施或核心服务的名称(service-id)，请通过此处的映射提取设施的服务ID。
+  # 不必试图提取本表来建构依赖关系，调用链依赖关系可以在zipkin server中直接读出真实的链条。
+  depends:
+    registrar: main-eureka-server
+    gateway: main-api-gateway
+    config: main-config-server
+    badmin: main-spring-boot-admin
+    zipkin: main-zipkin-server
+    hystrix: main-hystrix-dashboard
+    demo-provider: service-demo-provider
+
+demo.title:
+
+
+---
+spring:
+  profiles: prod
+  boot.admin.client:
+    url: http://badmin.bi.ops.local:7777
+    username:
+    password:
+  zipkin.baseUrl: http://zipkin.bi.ops.local:9411
+  cloud.config.server:
+    git:
+      uri: https://github.com/hedzr/zag-springcloud-config-profiles
+      #uri: file://${user.home}/hzw/zag-project/zag-springcloud-config-profiles #/{application}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://registrar.bi.ops.local:8761/eureka/
+    healthcheck:
+      enabled: false
+
+
+#
+# 配置服务器已定型：
+# 你可以自行定义新的profile以用于本地调试，例如定义 jacky 为名的profile，启动时指定 spring.profiles.active='dev,jacky' 即可，需注意应该重叠 dev 于前；
+# 在生产环境，总是使用 prod。
+#
+# http://laoye-mac:8888/service-demo-consumer/prod
+# http://laoye-mac:8888/service-demo-consumer/dev
+# 分别展示了  service-demo-consumer 微服务所载入的活动配置的溯源信息。
+#
+
+---
+# 专用于本机测试的
+spring.profiles: laoye
+spring.cloud.config.server:
+  git:
+    # uri: https://github.com/hedzr/zag-springcloud-config-profiles
+    uri: file://${user.home}/hzw/zag-project/zag-springcloud-config-profiles #/{application}
+#    username:
+#    password:
+
+#/{application}/{profile}[/{label}]
+#/{application}-{profile}.yml
+#/{label}/{application}-{profile}.yml
+#/{application}-{profile}.properties
+#/{label}/{application}-{profile}.properties
+
+
+---
+# 专用于本机测试的
+spring.profiles: prod
+spring.cloud.config.server:
+  git:
+    uri: https://github.com/hedzr/zag-config/zag/config/springcloud-config-profiles.git
+    searchPaths: '{application}' #[/{profile}]'
+    basedir: ${user.home}/.spring-cloud-config-server-prod/
+    forcePull: true
+    ignoreLocalSshSettings: true
+    #hostKey: AAAAB3NzaC1yc2EAAAADAQABAAABAQCa4j9st+SXzvN4e1zSxW6M+8pPUC1+HLKCRSXiXSC7nMyWrYEnf4L7YlNAUUdDaaYtI5fVAkk+Ls1gwwNP9hO7X8bsn0szJt5IDXHb1VnMy3EgIhLX8zP8PT22R5qTRbnFqiiB1hB/WFKJbtRwcWJkWln9JdZFVaObX7x2yhcW4soJdl2HSbvljJ2aylmYgqjMe2KCqLguMPRsNc9esihnz+RFK2oOirE9hKop9IGPWPVx7CQiYES0titDCXKyWE/0R4joslAu7pN0Ck2sPXacvetr1G0eUNtBPBaEXDI1m2fclZHmcl0j2fRdqqiPg67gyPLWfpJ37uQoN/Wxy7yX
+    #hostKeyAlgorithm: ssh-rsa
+    privateKey: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEA2tGOCkoo2egyZIpnF98flLfaXe9z6Kf0VEISnvniwHpDKVRn
+        S+12N1Xl0+jADNnHkoWaQ+CRYA4JkY54HMEd/i8BcOjLHvMCQaOwaMwD/1cbE8kZ
+        JPXk/35h5DPrHuZtK74GglT5EyssZdZNROOZ48VwbjQQOGwGjf0GqMXTWKMmkLd/
+        ifdta8VQf4pNfKjRdtEgbGvK2buLiSnOIa55c/ceSm+1dDpstEUkKBRAPjLWLd7s
+        YaBJ+ymrWHMMm1aar1NnGN2aPmBxdJ+gwtXCMef7N3qIrO/NcmEbWo+7KM4XKTwH
+        5VOU+NR72tQWM6SxNM4xT7w7Oona1kGJtSjaFQIDAQABAoIBACCFPGLzGpcoFzUy
+        DJhTpNHpcR6807EkJP/Qwgu2f6izgv/Fd4SlSgh3T6zqzoAabbqs+HxWB8UK0Qk8
+        70T2vopkWgZ50pZK727p8PHiQEXWoEOUg5Qmp14BXnMX9D2naVoy56y/DDV5GSQZ
+        cWpnmRts4ITAYBjClUbM8AxtOjfV4RbeVw6NicEqxPlsF1axtZYcNdwrYIVAB9+f
+        MCCWxN4Xq393wXsrau7somPtzUCOT47fHe5mmGqZsylI517D524vCgRxhaqoQao6
+        hFdIqVzEJqT3zNLiCKoekw+/TGmTGhIM6EpdMK72s8PanbYzyIZIfgk9r1WNnXCV
+        ehbVChECgYEA+WRVgej7Eax8p21ogxXQXMHbN99yyLqKAhMi2tQedWk3MWzZeG+/
+        LORHDF7CuXFg4O+FP34ahk/zXbYC7z4Fxa3YZDsW8VaA8g7TS+hncsAtTwgglL5o
+        bnBoVpWVOBLBM0sen+RhpExEgnGTbnuy2YGaasaQGw1uuj25i9APfv8CgYEA4J3W
+        N76DPI589esZdxAVNzVi7r5aV//ZZ9PUtAS77F1D7lwv6yWTKhfqSxOkjQvOfE8Z
+        8YBDPvV8YYgMOH9l5/rlt2TidvZvoI30Udy3rS+Pem1rx0jeVBHd7bXh6BixA0Wy
+        vUk87OKd/YyetV1HxSRnfiiP4dohdjjIeTVWuusCgYEA3fSNIXSP1vfzbTMzW88T
+        RSqHByAIUVurrhMH50f337kHlSZyGf0iYTq9fOXtWgvtE+Q4a/y4cKdBSjrOO8yw
+        aHHDb9kjHyFE26mUJi+tufQNnxP1o0wfN4M1aTHxvxj598O4esdQm2ABbTLV6vOO
+        hoQRQUx9PoZi8MA0nZlL4VMCgYBM9CZxQLcLpzGOuzYlQYBTQtobO2IOZhxg4wUr
+        i7eqeiWM406TfHMX58ugXyFwJUxf8GXOBIiFaGttqsOtE5ChUqcjFtAzu6hw1FGR
+        PlI7ZmD8q8JSK1foa5qiFz9HWjZDDbz39sCF0/oW5Pd24Xd2RkuiwFjTIv112Gxu
+        gmStcwKBgQDihT3QtYK+jy21OwLrBldiehmrT8Im6vGJ1aB4UZfiefn5WTh/2RyW
+        IgpZJaA96aIxrvnBgRFzcuGlc2blweovC808/GZWxfQP3PtW61zwxtkwdghi8ew7
+        T0BhktW/R8KvaLDoQhUcs1fS5yxpKD/q81xcnx1+gHIsEWT/7BuqVQ==
+        -----END RSA PRIVATE KEY-----
+
+
+---
+spring:
+  profiles: dev
+  application:
+    name: main-config-server
+  boot.admin.client:
+    url: http://localhost:7777
+    username:
+    password:
+    #instance:
+      #metadata:
+        #user.name: ${spring.security.user.name}
+        #user.password: ${spring.security.user.password}
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/hedzr/zag-servers/zag/config/springcloud-config-profiles.git
+          #uri: https://github.com/scratches/config-repo
+          searchPaths: '{application}' #[/{profile}]'
+          #searchPaths: core,ops,backend,portrait
+          basedir: ${user.home}/.spring-cloud-config-server/
+          forcePull: true
+          ignoreLocalSshSettings: true
+          #hostKey: AAAAB3NzaC1yc2EAAAADAQABAAABAQCa4j9st+SXzvN4e1zSxW6M+8pPUC1+HLKCRSXiXSC7nMyWrYEnf4L7YlNAUUdDaaYtI5fVAkk+Ls1gwwNP9hO7X8bsn0szJt5IDXHb1VnMy3EgIhLX8zP8PT22R5qTRbnFqiiB1hB/WFKJbtRwcWJkWln9JdZFVaObX7x2yhcW4soJdl2HSbvljJ2aylmYgqjMe2KCqLguMPRsNc9esihnz+RFK2oOirE9hKop9IGPWPVx7CQiYES0titDCXKyWE/0R4joslAu7pN0Ck2sPXacvetr1G0eUNtBPBaEXDI1m2fclZHmcl0j2fRdqqiPg67gyPLWfpJ37uQoN/Wxy7yX
+          #hostKeyAlgorithm: ssh-rsa
+          privateKey: |
+              -----BEGIN RSA PRIVATE KEY-----
+              MIIEpAIBAAKCAQEA2tGOCkoo2egyZIpnF98flLfaXe9z6Kf0VEISnvniwHpDKVRn
+              S+12N1Xl0+jADNnHkoWaQ+CRYA4JkY54HMEd/i8BcOjLHvMCQaOwaMwD/1cbE8kZ
+              JPXk/35h5DPrHuZtK74GglT5EyssZdZNROOZ48VwbjQQOGwGjf0GqMXTWKMmkLd/
+              ifdta8VQf4pNfKjRdtEgbGvK2buLiSnOIa55c/ceSm+1dDpstEUkKBRAPjLWLd7s
+              YaBJ+ymrWHMMm1aar1NnGN2aPmBxdJ+gwtXCMef7N3qIrO/NcmEbWo+7KM4XKTwH
+              5VOU+NR72tQWM6SxNM4xT7w7Oona1kGJtSjaFQIDAQABAoIBACCFPGLzGpcoFzUy
+              DJhTpNHpcR6807EkJP/Qwgu2f6izgv/Fd4SlSgh3T6zqzoAabbqs+HxWB8UK0Qk8
+              70T2vopkWgZ50pZK727p8PHiQEXWoEOUg5Qmp14BXnMX9D2naVoy56y/DDV5GSQZ
+              cWpnmRts4ITAYBjClUbM8AxtOjfV4RbeVw6NicEqxPlsF1axtZYcNdwrYIVAB9+f
+              MCCWxN4Xq393wXsrau7somPtzUCOT47fHe5mmGqZsylI517D524vCgRxhaqoQao6
+              hFdIqVzEJqT3zNLiCKoekw+/TGmTGhIM6EpdMK72s8PanbYzyIZIfgk9r1WNnXCV
+              ehbVChECgYEA+WRVgej7Eax8p21ogxXQXMHbN99yyLqKAhMi2tQedWk3MWzZeG+/
+              LORHDF7CuXFg4O+FP34ahk/zXbYC7z4Fxa3YZDsW8VaA8g7TS+hncsAtTwgglL5o
+              bnBoVpWVOBLBM0sen+RhpExEgnGTbnuy2YGaasaQGw1uuj25i9APfv8CgYEA4J3W
+              N76DPI589esZdxAVNzVi7r5aV//ZZ9PUtAS77F1D7lwv6yWTKhfqSxOkjQvOfE8Z
+              8YBDPvV8YYgMOH9l5/rlt2TidvZvoI30Udy3rS+Pem1rx0jeVBHd7bXh6BixA0Wy
+              vUk87OKd/YyetV1HxSRnfiiP4dohdjjIeTVWuusCgYEA3fSNIXSP1vfzbTMzW88T
+              RSqHByAIUVurrhMH50f337kHlSZyGf0iYTq9fOXtWgvtE+Q4a/y4cKdBSjrOO8yw
+              aHHDb9kjHyFE26mUJi+tufQNnxP1o0wfN4M1aTHxvxj598O4esdQm2ABbTLV6vOO
+              hoQRQUx9PoZi8MA0nZlL4VMCgYBM9CZxQLcLpzGOuzYlQYBTQtobO2IOZhxg4wUr
+              i7eqeiWM406TfHMX58ugXyFwJUxf8GXOBIiFaGttqsOtE5ChUqcjFtAzu6hw1FGR
+              PlI7ZmD8q8JSK1foa5qiFz9HWjZDDbz39sCF0/oW5Pd24Xd2RkuiwFjTIv112Gxu
+              gmStcwKBgQDihT3QtYK+jy21OwLrBldiehmrT8Im6vGJ1aB4UZfiefn5WTh/2RyW
+              IgpZJaA96aIxrvnBgRFzcuGlc2blweovC808/GZWxfQP3PtW61zwxtkwdghi8ew7
+              T0BhktW/R8KvaLDoQhUcs1fS5yxpKD/q81xcnx1+gHIsEWT/7BuqVQ==
+              -----END RSA PRIVATE KEY-----
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://127.0.0.1:8761/eureka/
+
+# https://www.jianshu.com/p/e9ce05b44150
+# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready
+# http://blog.didispace.com/spring-boot-actuator-1/
+#
+# - **http://www.baeldung.com/spring-boot-actuators**
+# - **https://blog.csdn.net/alinyua/article/details/80009435**
+management:
+  info:
+    git.mode: full
+  # security.enabled: false
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    # sensitive: false
+    # metrics.sensitive: false
+    # web.expose: "*"
+    web.exposure:
+      include: "*"
+      exclude: beans
+  security.enabled: false  # for springboot 1.5.x or earlier
+
+
+
+#security:
+#  basic:
+#    enabled: true
+#  user:
+#    #这是config-server的用户名和密码
+#    name: root
+#    password: booszy

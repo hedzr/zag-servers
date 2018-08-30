@@ -1,0 +1,227 @@
+
+spring:
+  profiles:
+    active:
+      - dev   # 自动使用开发配置。生产环境通过命令行指定 prod
+
+# 提供描述信息帮助识别清晰
+info:
+  category: zag
+  # api.version: 2.0pre
+  #api-gateway: main-api-gateway
+
+obsez:
+  # 微服务在这里宣告自己对其他服务的依赖
+  # 首要用途是避免硬编码公共设施或核心服务的名称(service-id)，请通过此处的映射提取设施的服务ID。
+  # 不必试图提取本表来建构依赖关系，调用链依赖关系可以在zipkin server中直接读出真实的链条。
+  depends:
+    registrar: main-eureka-server
+    gateway: main-api-gateway
+    gatewayLocal: main-api-gateway
+    config: main-config-server
+    badmin: main-spring-boot-admin
+    zipkin: main-zipkin-server
+    hystrix: main-hystrix-dashboard
+    demo-provider: service-demo-provider
+  #
+  # 灰度发布所需要的负载均衡
+  #
+  lb:
+# 暂不支持
+#    ms-*:
+#      current: vw
+#      weighted: [30,30,40]  #适用于 weighted rr/random
+#      ip-hash:
+#      uri-hash:
+#      url: # 未实现
+#        "/**"
+#      hdr: jwt
+#      cookie: jwt
+#      hdrcookie: jwt
+#      vw:
+#        1.0-SNAPSHOT: 100
+#        3.0-SNAPSHOT: 0
+#        1.0.RELEASE: 0
+    ms-access:
+      '1.0-SNAPSHOT': 100
+      '3.0-SNAPSHOT': 0
+      '1.0.RELEASE': 0
+      #暂不支持 ~: 0
+    ms-user:
+      '1.0-SNAPSHOT': 100
+      #~: 0
+    ms-account:
+      '1.0-SNAPSHOT': 100
+      #~: 0
+    service-demo-provider:
+      '1.0-SNAPSHOT': 90
+      '1.0.1-SNAPSHOT': 10
+      #~: 10
+  zaglb:
+    lbPrefer: vw              # 算法选择：vw/random/poll -> 灰度发布专用/标准的random/标准的RoundRobin
+  useLocalGateway: false      # 是否启用内网网关, EndpointBuilder据此增加 apigw 前缀到 requestUri
+
+# 负载均衡算法指定
+service-demo-provider:
+  ribbon:
+    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.WeightedResponseTimeRule
+    NFLoadBalancerRuleClassName: com.obsez.zag.common.lb.ZagRule
+main-api-gateway:
+  ribbon:
+    #NFLoadBalancerRuleClassName: com.netflix.loadbalancer.WeightedResponseTimeRule
+    NFLoadBalancerRuleClassName: com.obsez.zag.common.lb.ZagRule
+
+demo.title:
+
+
+# 没有效果
+security:
+  basic:
+    path: /swagger-ui.html
+    enabled: true
+  user:
+    name: obsez
+    password: 123456
+
+# https://www.jianshu.com/p/e9ce05b44150
+# https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#production-ready
+# http://blog.didispace.com/spring-boot-actuator-1/
+#
+# - **http://www.baeldung.com/spring-boot-actuators**
+# - **https://blog.csdn.net/alinyua/article/details/80009435**
+management:
+  info:
+    git.mode: full
+  # security.enabled: false
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    # sensitive: false
+    # metrics.sensitive: false
+    # web.expose: "*"
+    web.exposure:
+      include: "*"
+      exclude: beans
+  security.enabled: false  # for springboot 1.5.x or earlier
+
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type.descriptor.sql.BasicExtractor: TRACE
+    com.obsez.zag.persistence: ERROR
+    com.obsez.zag.common: INFO
+    com.obsez.zag.common.lb: DEBUG
+    io.springfox: DEBUG
+    com.obsez.zag.my-service: DEBUG
+
+
+---
+spring:
+  profiles: prod
+  boot.admin.client:
+    url: http://badmin.bi.ops.local:7777
+    username:
+    password:
+  zipkin.baseUrl: http://zipkin.bi.ops.local:9411
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://registrar.bi.ops.local:8761/eureka/
+    healthcheck:
+      enabled: false
+
+
+# 为了便于本地调试，可以额外定义个人命名的profile，在调试时启用 "dev,your-name" 作为active profile从而可以使用你的特定调试环境
+# 参阅 main-config-server
+---
+spring:
+  profiles: dev
+  boot.admin.client:
+    url: http://localhost:7777
+    username:
+    password:
+    #instance:
+      #metadata:
+        #user.name: ${spring.security.user.name}
+        #user.password: ${spring.security.user.password}
+  zipkin.baseUrl: http://localhost:9411
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+  datasource:                           # 指定数据源
+    platform: h2                        # 指定数据源类型
+    schema: classpath:schema.sql        # 指定h2数据库的建表脚本
+    data: classpath:data.sql            # 指定h2数据库的insert脚本
+  rabbitmq:
+    host: localhost
+    port: 5672
+#    username: sang
+#    password: 123456
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+#      defaultZone: http://eureka-server:8761/eureka/
+#      defaultZone: http://192.168.0.73:8761/eureka/
+      defaultZone: http://127.0.0.1:8761/eureka/
+    healthcheck:
+      enabled: false
+#    instance:
+#      lease-expiration-duration-in-seconds: 30
+#      lease-renewal-interval-in-seconds: 10
+#  instance:
+#    instance-id: "${spring.cloud.client.hostname}:${server.port}:@project.version@"
+#    #instance-id: ${eureka.client.instance.hostname}:${server.port}:@project.version@
+
+
+---
+spring:
+  profiles: dev10
+  boot.admin.client:
+    url: http://sw12.com:7777
+    username:
+    password:
+    #instance:
+      #metadata:
+        #user.name: ${spring.security.user.name}
+        #user.password: ${spring.security.user.password}
+  zipkin.baseUrl: http://sw10.com:9411
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+  datasource:                           # 指定数据源
+    platform: h2                        # 指定数据源类型
+    schema: classpath:schema.sql        # 指定h2数据库的建表脚本
+    data: classpath:data.sql            # 指定h2数据库的insert脚本
+  rabbitmq:
+    host: localhost
+    port: 5672
+#    username: sang
+#    password: 123456
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+#      defaultZone: http://eureka-server:8761/eureka/
+#      defaultZone: http://192.168.0.73:8761/eureka/
+      defaultZone: http://192.168.0.10:8761/eureka/
+    healthcheck:
+      enabled: false
+#    instance:
+#      lease-expiration-duration-in-seconds: 30
+#      lease-renewal-interval-in-seconds: 10
+#  instance:
+#    instance-id: "${spring.cloud.client.hostname}:${server.port}:@project.version@"
+#    #instance-id: ${eureka.client.instance.hostname}:${server.port}:@project.version@
+
