@@ -1,0 +1,11 @@
+
+#PORT="11111"
+
+
+CLASSPATH=".:/data/libs/logback-classic-1.2.3.jar:/data/libs/logback-core-1.2.3.jar:$CLASSPATH"
+JAVA_OPTS="-Xmx1024m -Duser.timezone=GMT+00 -Djava.net.preferIPv4Stack=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/heap.dumps -XX:ErrorFile=/data/heap.dumps/jvm-crash.log -Djava.security.egd=file:/dev/./urandom"
+OPTIONS=""
+
+# mvn spring-boot:run -Drun.jvmArguments="-Xmx512m" -Drun.profiles=dev
+
+# -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=./dump-yyy.log  -XX:ErrorFile=./jvm-crash.log -Djava.security.egd=file:/dev/./urandom

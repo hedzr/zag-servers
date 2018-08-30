@@ -1,0 +1,52 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=main-eureka-server
+# Documentation=man:sshd(8) man:sshd_config(5)
+After=network.target
+# Wants=syslog.service
+#ConditionPathExists=/usr/local/bin/main-eureka-server
+
+[Service]
+Type=idle
+User=suwei
+Group=suwei
+LimitNOFILE=65535
+
+KillMode=process
+Restart=on-failure
+RestartSec=23s
+# RestartLimitIntervalSec=60
+
+EnvironmentFile=/etc/default/main-eureka-server
+WorkingDirectory=/var/lib/main-eureka-server
+#          start: --addr, --port,
+#           todo: --pid
+# global options: --config
+#ExecStart=/usr/local/bin/main-eureka-server $GLOBAL_OPTIONS server start $OPTIONS
+ExecStart=/usr/bin/java -Dsun.misc.URLClassPath.disableJarChecking=true -jar /data/codes/zag-sw-servers/main-eureka-server/target/main-eureka-server-1.0-SNAPSHOT.jar $OPTIONS
+#           stop: -1/--hup, -9/--kill,
+### TODO ExecStop=/usr/local/bin/gwkool $GLOBAL_OPTIONS server stop -1
+### TODO ExecReload=/bin/kill -HUP $MAINPID
+#ExecStop=/usr/local/bin/main-eureka-server $GLOBAL_OPTIONS server stop -3
+#ExecReload=/usr/local/bin/main-eureka-server $GLOBAL_OPTIONS server restart
+ExecStop=kill $MAINPID
+Restart=always
+
+# # make sure log directory exists and owned by syslog
+# PermissionsStartOnly=true
+#ExecStartPre=-mkdir /var/run/main-eureka-server
+#ExecStartPre=-mkdir /var/lib/main-eureka-server
+#ExecStartPre=-mkdir /var/log/main-eureka-server
+#ExecStartPre=-/bin/chown -R suwei:suwei /var/run/main-eureka-server /var/lib/main-eureka-server
+#ExecStartPre=-/bin/chown -R syslog:adm /var/log/main-eureka-server
+
+# 使能coredump
+# ExecStartPre=ulimit -c unlimited
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=main-eureka-server
+
+# After modified, run: systemctl daemon-reload
